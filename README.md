@@ -14,6 +14,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
+
+
 An Android wrapper for the The SoundTouch Library Audio Processing Library by Olli Parviainen 2001-2012,
 distrubted under LGPL license.
 
