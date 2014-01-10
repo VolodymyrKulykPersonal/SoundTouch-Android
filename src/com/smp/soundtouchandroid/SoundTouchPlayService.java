@@ -41,7 +41,7 @@ public class SoundTouchPlayService extends IntentService
 	@Override
 	protected void onHandleIntent(Intent intent)
 	{
-		soundTouch = new SoundTouch(2, 44100, 2, 1.0f, 2);
+		soundTouch = SoundTouch.getInstance().setup(2, 44100, 2, 1.0f, 2);
 
 		byte[] bytes = null;
 

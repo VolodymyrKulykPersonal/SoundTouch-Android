@@ -7,25 +7,42 @@ public class SoundTouch
     {
         System.loadLibrary("soundtouch");
     }
+	private static SoundTouch instance;
 	
+	public static synchronized SoundTouch getInstance() 
+	{
+		if (instance == null)
+		{
+			instance = new SoundTouch();
+		}
+		
+		return instance;
+	}
 	static final int FINAL_BUFFER = 4096;
 	
 	private int channels, samplingRate, bytesPerSample;
 	private float tempo;
 	private int pitchSemi;
 	
-	public SoundTouch(int channels, int samplingRate, int bytesPerSample, float tempo, int pitchSemi)
+	public SoundTouch setup(int channels, int samplingRate, int bytesPerSample, float tempo, int pitchSemi)
 	{
-		this.channels = channels;
-		this.samplingRate = samplingRate;
-		this.bytesPerSample = bytesPerSample;
-		this.tempo = tempo;
-		this.pitchSemi = pitchSemi;
+		instance.channels = channels;
+		instance.samplingRate = samplingRate;
+		instance.bytesPerSample = bytesPerSample;
+		instance.tempo = tempo;
+		instance.pitchSemi = pitchSemi;
 		
 		//todo: id's
 		setup(0, channels, samplingRate, bytesPerSample, tempo, pitchSemi);
+		
+		return instance;
 	}
 	
+	private SoundTouch()
+	{
+		// TODO Auto-generated constructor stub
+	}
+
 	private native final void setup(int id, int channels, int samplingRate, int bytesPerSample, float tempo, int pitchSemi);
     private native final void putBytes(byte[] input, int length);
     private native final int getBytes(byte[] output, int toGet);
@@ -46,6 +63,8 @@ public class SoundTouch
     {
     	finish(FINAL_BUFFER);
     }
-    
+    public void testff(){
+    	//Create a new
+    }
 	
 }
