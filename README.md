@@ -24,7 +24,7 @@ soundTouch<span style="color: #333333">.</span><span style="color: #0000CC">putB
 <span style="color: #888888">//get a byte[] of processed audio and write to output:</span>
 soundTouch<span style="color: #333333">.</span><span style="color: #0000CC">getBytes</span><span style="color: #333333">(</span>output<span style="color: #333333">);</span>
 
-<span style="color: #888888">//after you write the last byte[], call finish().</span>
+<span style="color: #888888">//after you putBytes() the last byte[], call finish().</span>
 
 soundTouch<span style="color: #333333">.</span><span style="color: #0000CC">finish</span><span style="color: #333333">();</span>
 
