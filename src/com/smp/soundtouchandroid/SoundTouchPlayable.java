@@ -49,29 +49,11 @@ public class SoundTouchPlayable implements Runnable
 	{
 		track.play();
 
-		while (!finished)
-		{
-			playAudio();
-
-			synchronized (pauseLock)
-			{
-				while (paused)
-				{
-					try
-					{
-						pauseLock.wait();
-					}
-					catch (InterruptedException e)
-					{
-					}
-				}
-			}
-		}
+		playAudio();
 
 		track.pause();
 		track.release();
 		file.close();
-
 	}
 
 	public void play()
@@ -100,19 +82,15 @@ public class SoundTouchPlayable implements Runnable
 
 	private void playAudio()
 	{
-		byte[] input;
 		try
 		{
+			byte[] input = null;
 			int bytesReceived = 0;
+			
 			do
 			{
-				input = file.decodeChunk();
-				soundTouch.putBytes(input);
-
-				bytesReceived = soundTouch.getBytes(input);
-
-				track.write(input, 0, bytesReceived);
-
+				if (finished) break;
+				input = processChunk();
 			}
 			while (input.length > 0);
 
@@ -120,13 +98,8 @@ public class SoundTouchPlayable implements Runnable
 
 			do
 			{
-				input = file.decodeChunk();
-				soundTouch.putBytes(input);
-
-				bytesReceived = soundTouch.getBytes(input);
-
-				track.write(input, 0, bytesReceived);
-
+				if (finished) break;
+				bytesReceived = processChunkForInt();
 			}
 			while (bytesReceived > 0);
 
@@ -146,5 +119,57 @@ public class SoundTouchPlayable implements Runnable
 			finished = true;
 			e.printStackTrace();
 		}
+	}
+	private byte[] processChunk() throws BitstreamException, DecoderException, IOException
+	{
+		byte[] input;
+		int bytesReceived = 0;
+		synchronized (pauseLock)
+		{
+			while (paused)
+			{
+				try
+				{
+					pauseLock.wait();
+				}
+				catch (InterruptedException e)
+				{
+				}
+			}
+		}
+		input = file.decodeChunk();
+		soundTouch.putBytes(input);
+
+		bytesReceived = soundTouch.getBytes(input);
+
+		track.write(input, 0, bytesReceived);
+		
+		return input;
+	}
+	private int processChunkForInt() throws BitstreamException, DecoderException, IOException
+	{
+		byte[] input;
+		int bytesReceived = 0;
+		synchronized (pauseLock)
+		{
+			while (paused)
+			{
+				try
+				{
+					pauseLock.wait();
+				}
+				catch (InterruptedException e)
+				{
+				}
+			}
+		}
+		input = file.decodeChunk();
+		soundTouch.putBytes(input);
+
+		bytesReceived = soundTouch.getBytes(input);
+
+		track.write(input, 0, bytesReceived);
+		
+		return bytesReceived;
 	}
 }
