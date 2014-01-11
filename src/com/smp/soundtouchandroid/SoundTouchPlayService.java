@@ -38,6 +38,7 @@ public class SoundTouchPlayService extends IntentService
 	@Override
 	protected void onHandleIntent(Intent intent)
 	{
+		/*
 		track = new AudioTrack(AudioManager.STREAM_MUSIC, 44100, AudioFormat.CHANNEL_OUT_STEREO,
 				AudioFormat.ENCODING_PCM_16BIT, BUFFER_SIZE_TRACK, AudioTrack.MODE_STREAM);
 		soundTouch = SoundTouch.getInstance().setup(2, 44100, 2, 2.0f, -2);
@@ -60,7 +61,7 @@ public class SoundTouchPlayService extends IntentService
 
 		track.pause();
 		track.flush();
-
+*/
 	}
 
 	@Override
@@ -77,5 +78,5 @@ public class SoundTouchPlayService extends IntentService
 
 		super.onDestroy();
 	}
-
+	
 }

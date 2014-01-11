@@ -7,59 +7,48 @@ public class SoundTouch
     {
         System.loadLibrary("soundtouch");
     }
-	private static SoundTouch instance;
-	
-	public static synchronized SoundTouch getInstance() 
-	{
-		if (instance == null)
-		{
-			instance = new SoundTouch();
-		}
-		
-		return instance;
-	}
 	
 	private int channels, samplingRate, bytesPerSample;
 	private float tempo;
 	private int pitchSemi;
+	private int track;
 	
-	public SoundTouch setup(int channels, int samplingRate, int bytesPerSample, float tempo, int pitchSemi)
+	public SoundTouch(int track, int channels, int samplingRate, int bytesPerSample, float tempo, int pitchSemi)
 	{
-		instance.channels = channels;
-		instance.samplingRate = samplingRate;
-		instance.bytesPerSample = bytesPerSample;
-		instance.tempo = tempo;
-		instance.pitchSemi = pitchSemi;
 		
-		//todo: id's
-		setup(0, channels, samplingRate, bytesPerSample, tempo, pitchSemi);
+		this.channels = channels;
+		this.samplingRate = samplingRate;
+		this.bytesPerSample = bytesPerSample;
+		this.tempo = tempo;
+		this.pitchSemi = pitchSemi;
+		this.track = track;
 		
-		return instance;
+		setup(track, channels, samplingRate, bytesPerSample, tempo, pitchSemi);
 	}
 	
-	private SoundTouch()
-	{
-		// TODO Auto-generated constructor stub
-	}
-
-	private native final void setup(int id, int channels, int samplingRate, int bytesPerSample, float tempo, int pitchSemi);
-    private native final void putBytes(byte[] input, int length);
-    private native final int getBytes(byte[] output, int toGet);
-    private native final void finish(int bufSize);
+	private native final void setup(int track, int channels, int samplingRate, int bytesPerSample, float tempo, int pitchSemi);
+    private native final void putBytes(int track, byte[] input, int length);
+    private native final int getBytes(int track, byte[] output, int toGet);
+    private native final void finish(int track, int bufSize);
+    private native final void clearBytes(int track);
     
+    public void clearBuffer(int track)
+    {
+    	clearBytes(track);
+    }
     public void putBytes(byte[] input)
     {
-    	putBytes(input, input.length);
+    	putBytes(track, input, input.length);
     }
     
     public int getBytes(byte[] output)
     {
-    	return getBytes(output, output.length);
+    	return getBytes(track, output, output.length);
     }
     
     //call finish after the last bytes have been written
     public void finish()
     {
-    	finish(BUFFER_SIZE_PUT);
+    	finish(track, BUFFER_SIZE_PUT);
     }
 }

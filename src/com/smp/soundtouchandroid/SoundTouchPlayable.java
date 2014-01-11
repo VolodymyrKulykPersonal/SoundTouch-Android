@@ -21,12 +21,15 @@ public class SoundTouchPlayable implements Runnable
 	private Mp3File file;
 
 	private boolean paused, finished;
+	private int id;
 
-	public SoundTouchPlayable(String file, int channels, int samplingRate,
+	public SoundTouchPlayable(String file, int id, int channels, int samplingRate,
 			int bytesPerSample, float tempo, int pitchSemi)
 
 			throws FileNotFoundException
 	{
+		this.id = id;
+		
 		pauseLock = new Object();
 		paused = true;
 		finished = false;
@@ -37,7 +40,7 @@ public class SoundTouchPlayable implements Runnable
 		if (channels == 2)
 			channelFormat = AudioFormat.CHANNEL_OUT_STEREO;
 
-		soundTouch = SoundTouch.getInstance().setup(channels, samplingRate, bytesPerSample, tempo, pitchSemi);
+		soundTouch = new SoundTouch(id, channels, samplingRate, bytesPerSample, tempo, pitchSemi);
 		track = new AudioTrack(AudioManager.STREAM_MUSIC, samplingRate, channelFormat,
 				AudioFormat.ENCODING_PCM_16BIT, BUFFER_SIZE_TRACK, AudioTrack.MODE_STREAM);
 
@@ -51,6 +54,7 @@ public class SoundTouchPlayable implements Runnable
 
 		playAudio();
 
+		soundTouch.clearBuffer(id);
 		track.pause();
 		track.release();
 		file.close();
@@ -146,6 +150,8 @@ public class SoundTouchPlayable implements Runnable
 		
 		return input;
 	}
+	
+	//TODO code duplication...refactor?
 	private int processChunkForInt() throws BitstreamException, DecoderException, IOException
 	{
 		byte[] input;
