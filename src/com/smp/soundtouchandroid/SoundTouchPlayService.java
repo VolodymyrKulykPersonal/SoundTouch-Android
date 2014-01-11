@@ -1,10 +1,12 @@
 package com.smp.soundtouchandroid;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Calendar;
 
-
+import javazoom.jl.decoder.BitstreamException;
+import javazoom.jl.decoder.DecoderException;
 
 import android.app.IntentService;
 import android.content.Context;
@@ -14,6 +16,7 @@ import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.os.Environment;
 import android.util.Log;
+import static com.smp.soundtouchandroid.Constants.*;
 
 public class SoundTouchPlayService extends IntentService
 {
@@ -22,94 +25,48 @@ public class SoundTouchPlayService extends IntentService
 		super("SoundTouchService");
 
 	}
-	
 
 	private static AudioTrack track;
-	private final static int BUFFER_SIZE_TRACK = 16384;
-	
-	
-	static 
+
+	static
 	{
-		track = new AudioTrack(AudioManager.STREAM_MUSIC, 44100, AudioFormat.CHANNEL_OUT_STEREO,
-				AudioFormat.ENCODING_PCM_16BIT, BUFFER_SIZE_TRACK, AudioTrack.MODE_STREAM);
+
 	}
-	
+
 	private SoundTouch soundTouch;
-	private final int BUFFER_SIZE_PUT = 4096;
-	private final int BUFFER_SIZE_GET = 4096;
-	
+
 	@Override
 	protected void onHandleIntent(Intent intent)
 	{
-		soundTouch = SoundTouch.getInstance().setup(2, 44100, 2, 1.0f, 2);
+		track = new AudioTrack(AudioManager.STREAM_MUSIC, 44100, AudioFormat.CHANNEL_OUT_STEREO,
+				AudioFormat.ENCODING_PCM_16BIT, BUFFER_SIZE_TRACK, AudioTrack.MODE_STREAM);
+		soundTouch = SoundTouch.getInstance().setup(2, 44100, 2, 2.0f, -2);
 
-		byte[] bytes = null;
+		String baseDir = Environment.getExternalStorageDirectory().getAbsolutePath();
+		String fileName = "music.mp3";
+		String fullPath = baseDir + "/" + fileName;
 
+		Mp3File fileOut = null;
 		try
 		{
-			int ms = Calendar.getInstance().get(Calendar.MILLISECOND);
-			Log.i("TIME", String.valueOf(ms));
-			// bytes = wav.readWavPcm();
-			String baseDir = Environment.getExternalStorageDirectory().getAbsolutePath();
-			String fileName = "music.mp3";
-			String fullPath = baseDir + "/" + fileName;
-			bytes = Mp3File.decode(fullPath, 0, 5000);
-			ms = Calendar.getInstance().get(Calendar.MILLISECOND);
-			Log.i("TIME", String.valueOf(ms));
-
+			fileOut = new Mp3File(fullPath);
 		}
-		catch (IOException e)
+		catch (FileNotFoundException e)
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		AudioManager amanager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
-		amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
-
-		final ByteBuffer playBuffer = ByteBuffer.wrap(bytes);
-		final byte[] put = new byte[BUFFER_SIZE_PUT];
-
-		while (playBuffer.hasRemaining())
-		{
-			if (playBuffer.remaining() < BUFFER_SIZE_PUT)
-			{
-				final byte[] lastPut = new byte[playBuffer.remaining()];
-				playBuffer.get(lastPut);
-				soundTouch.putBytes(lastPut);
-				soundTouch.finish();
-			}
-			else
-			{
-				playBuffer.get(put);
-				soundTouch.putBytes(put);
-			}
-		}
-		byte[] get = new byte[BUFFER_SIZE_GET];
-
-		track.play();
-
-		int bytesReceived = -1;
-		while (bytesReceived != 0)
-		{
-			bytesReceived = soundTouch.getBytes(get);
-
-			track.write(get, 0, bytesReceived);
-			// Log.d("SoundJ", "in main");
-		}
 		
-		//amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
 
 		track.pause();
 		track.flush();
-		
-		//track.release();
+
 	}
 
 	@Override
 	public void onCreate()
 	{
-		
+
 		super.onCreate();
 	}
 
@@ -117,8 +74,6 @@ public class SoundTouchPlayService extends IntentService
 	public void onDestroy()
 	{
 		AudioManager amanager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-
-		
 
 		super.onDestroy();
 	}

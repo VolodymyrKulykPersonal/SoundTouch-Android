@@ -1,6 +1,6 @@
 
 package com.smp.soundtouchandroid;
-
+import static com.smp.soundtouchandroid.Constants.*;
 public class SoundTouch
 {
 	static
@@ -18,7 +18,6 @@ public class SoundTouch
 		
 		return instance;
 	}
-	static final int FINAL_BUFFER = 4096;
 	
 	private int channels, samplingRate, bytesPerSample;
 	private float tempo;
@@ -61,10 +60,6 @@ public class SoundTouch
     //call finish after the last bytes have been written
     public void finish()
     {
-    	finish(FINAL_BUFFER);
+    	finish(BUFFER_SIZE_PUT);
     }
-    public void testff(){
-    	//Create a new
-    }
-	
 }
