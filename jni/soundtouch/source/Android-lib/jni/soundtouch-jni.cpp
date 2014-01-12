@@ -14,7 +14,7 @@
 //#include "TimeShiftEffect.h"
 
 #define LOGV(...)   __android_log_print((int)ANDROID_LOG_INFO, "SOUNDTOUCH", __VA_ARGS__)
-//#define LOGV(...)
+//#define //LOGV(...)
 
 
 #define DLL_PUBLIC __attribute__ ((visibility ("default")))
@@ -97,10 +97,10 @@ extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_putBytes(JN
 																			jbyteArray input,
 																			jint length)
 {
-	LOGV("before soundtouch");
+	//LOGV("before soundtouch");
 	SoundTouchExt& soundTouch = sProcessors.at(track);
-	LOGV("after soundtouch");
-	LOGV("IN PROCESS: SoundTouch channels: %d, sampling rate: %d, bytesper: %d, tempo: %f, pitch: %d", soundTouch.channels, soundTouch.sampleRate, soundTouch.bytesPerSample, soundTouch.tempoChange, soundTouch.pitchSemi);
+	//LOGV("after soundtouch");
+	//LOGV("IN PROCESS: SoundTouch channels: %d, sampling rate: %d, bytesper: %d, tempo: %f, pitch: %d", soundTouch.channels, soundTouch.sampleRate, soundTouch.bytesPerSample, soundTouch.tempoChange, soundTouch.pitchSemi);
 	const int bytesPerSample = soundTouch.bytesPerSample;
 	const int BUFF_SIZE = length / bytesPerSample;
 	
@@ -108,20 +108,20 @@ extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_putBytes(JN
 	
 	jboolean isCopy;
 	jbyte* ar = env->GetByteArrayElements(input, &isCopy);
-	LOGV("length: %d", length);
+	//LOGV("length: %d", length);
 
 	SAMPLETYPE* fBufferIn = new SAMPLETYPE[BUFF_SIZE];
 	
 	//converts the chars to floats (16-bit only).
 	convertInput16(ar, fBufferIn, BUFF_SIZE); 
-	LOGV("after convert input");
+	//LOGV("after convert input");
 
 	//transform floats from fBufferIn to fBufferout
 	process(soundTouch, fBufferIn, fBufferOut, BUFF_SIZE, false); //audio is ongoing.
 
-	LOGV("fBufferOut Size: %d", fBufferOut->size());
+	//LOGV("fBufferOut Size: %d", fBufferOut->size());
 	env->ReleaseByteArrayElements(input, ar, JNI_ABORT);
-	LOGV("after release putBytes");
+	//LOGV("after release putBytes");
 	delete[] fBufferIn;
 	fBufferIn = NULL;	
 }
@@ -132,9 +132,9 @@ extern "C" DLL_PUBLIC jint Java_com_smp_soundtouchandroid_SoundTouch_getBytes(JN
 	queue<signed char>* fBufferOut = sProcessors.at(track).fBufferOut;
 
 	jbyte* res = new jbyte[toGet];
-	LOGV("BEFORE PUTQUEUE, %d", fBufferOut->size());
+	//LOGV("BEFORE PUTQUEUE, %d", fBufferOut->size());
 	jint bytesWritten = putQueueInChar(res, fBufferOut, toGet);
-	LOGV("AFTER PUTQUEUE: %d", fBufferOut->size());
+	//LOGV("AFTER PUTQUEUE: %d", fBufferOut->size());
 	//need checking
 	jboolean isCopy;
 	jbyte* ar = (jbyte*) env->GetPrimitiveArrayCritical(get, &isCopy);
@@ -142,7 +142,7 @@ extern "C" DLL_PUBLIC jint Java_com_smp_soundtouchandroid_SoundTouch_getBytes(JN
 	memcpy(ar, res, toGet);
 	
 	env->ReleasePrimitiveArrayCritical(get, ar, JNI_ABORT);
-	LOGV("AFTER BYTE %d", fBufferOut->size());
+	//LOGV("AFTER BYTE %d", fBufferOut->size());
 	delete[] res;
 	res = NULL;
 
@@ -162,7 +162,7 @@ static int putQueueInChar(jbyte* res, queue<signed char>* fBufferOut, int toPut)
 		}
 		else
 		{
-			//LOGV("fBufferOut.size() is 0");
+			////LOGV("fBufferOut.size() is 0");
 			break;
 		}
 	}
@@ -180,7 +180,7 @@ static int process(SoundTouchExt& soundTouch, SAMPLETYPE* fBufferIn, queue<signe
 	SoundTouch* &sTouch = soundTouch.sTouch;
 	
 	int nSamples = BUFF_SIZE / channels;
-	LOGV("After soundTouch, nSamples: %d", nSamples);
+	//LOGV("After soundTouch, nSamples: %d", nSamples);
 	int processed = 0;
 
 	if (finishing)
@@ -189,17 +189,17 @@ static int process(SoundTouchExt& soundTouch, SAMPLETYPE* fBufferIn, queue<signe
 	}
 	else
 	{
-		LOGV("before put samples");
+		//LOGV("before put samples");
 		sTouch->putSamples(fBufferIn, nSamples);
 	}
 	
-	LOGV("After put samples");
+	//LOGV("After put samples");
 	do
 	{
 		nSamples = sTouch->receiveSamples(fBufferIn, buffSizeSamples);
-		LOGV("after receive samples: %d", nSamples);
+		//LOGV("after receive samples: %d", nSamples);
 		processed += write(fBufferIn, fBufferOut, nSamples * channels, bytesPerSample); 
-		LOGV("NUMBER OF SAMPLES: %d", nSamples);
+		//LOGV("NUMBER OF SAMPLES: %d", nSamples);
 	} while (nSamples != 0);
 
 	
@@ -209,7 +209,7 @@ static int process(SoundTouchExt& soundTouch, SAMPLETYPE* fBufferIn, queue<signe
 static void* getConvBuffer(int sizeBytes)
 {
 	int convBuffSize = (sizeBytes + 15) & -8; 
-	//LOGV("conv buffer size: %d", convBuffSize);// round up to following 8-byte bounday
+	////LOGV("conv buffer size: %d", convBuffSize);// round up to following 8-byte bounday
 	char *convBuff = new char[convBuffSize];
 	return convBuff;
 }
@@ -275,16 +275,16 @@ static int write(const float *bufferIn, queue<signed char>* bufferOut, int numEl
 	default:
 		assert(false);
 	}
-	//LOGV("After switch");
-	//LOGV("NUMBER OF BYTES: %d", numBytes);
-	//LOGV("number of elems: %d", numElems);
+	////LOGV("After switch");
+	////LOGV("NUMBER OF BYTES: %d", numBytes);
+	////LOGV("number of elems: %d", numElems);
 	for (int i = 0; i < numBytes / 2; ++i)
 	{
 		bufferOut->push(temp[i] & 0xff);
 		bufferOut->push((temp[i] >> 8) & 0xff);
-		//LOGV("i %d", numElems);
+		////LOGV("i %d", numElems);
 	}
-	//LOGV("After write");
+	////LOGV("After write");
 	delete[] temp;
 	return bufferOut->size() - oldSize;
 	//bytesWritten += numBytes;

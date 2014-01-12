@@ -29,6 +29,7 @@ public class SoundTouchPlayable implements Runnable
 			throws FileNotFoundException
 	{
 		this.id = id;
+		this.file = new Mp3File(file);
 		
 		pauseLock = new Object();
 		paused = true;
@@ -44,7 +45,6 @@ public class SoundTouchPlayable implements Runnable
 		track = new AudioTrack(AudioManager.STREAM_MUSIC, samplingRate, channelFormat,
 				AudioFormat.ENCODING_PCM_16BIT, BUFFER_SIZE_TRACK, AudioTrack.MODE_STREAM);
 
-		this.file = new Mp3File(file);
 	}
 
 	@Override
