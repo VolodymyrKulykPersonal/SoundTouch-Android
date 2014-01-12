@@ -16,7 +16,7 @@ limitations under the License.
 
 
 
-An Android wrapper for the The SoundTouch Library Audio Processing Library by Olli Parviainen 2001-2012,
+An Android wrapper for the The SoundTouch C++ Audio Processing Library by Olli Parviainen 2001-2012,
 distrubted under LGPL license.
 
 It is pre-alpha, use at your own risk. The SoundTouch class is getting there, the rest is currently rubbish.
