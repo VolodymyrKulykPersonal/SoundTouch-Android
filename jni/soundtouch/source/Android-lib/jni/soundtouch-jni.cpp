@@ -58,7 +58,18 @@ static int putQueueInChar(jbyte*, queue<signed char>*, int);
 extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_clearBytes(JNIEnv *env,
 	jobject thiz, jint track)
 {
+	SoundTouchExt& soundTouch = sProcessors.at(track);
+
+	const int BUFF_SIZE = 8192;
+
 	queue<signed char>* fBufferOut = sProcessors.at(track).fBufferOut;
+
+	SAMPLETYPE* fBufferIn = new SAMPLETYPE[BUFF_SIZE];
+	process(soundTouch, fBufferIn, fBufferOut, BUFF_SIZE, true); //audio is finishing
+
+	delete[] fBufferIn;
+	fBufferIn = NULL;
+	
 	while (!fBufferOut->empty())
 	{
 		fBufferOut->pop();
