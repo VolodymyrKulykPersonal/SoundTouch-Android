@@ -136,8 +136,8 @@ static void setup(SoundTouch *pSoundTouch, const WavInFile *inFile, const RunPar
     pSoundTouch->setSetting(SETTING_USE_QUICKSEEK, params->quick);
     pSoundTouch->setSetting(SETTING_USE_AA_FILTER, !(params->noAntiAlias));
 	//fprintf(stderr, "SampleRate: %d, channels: %d", sampleRate, channels);
-	cout << endl << "SampleRate: " << sampleRate << endl << "channels: " << channels << endl;
-	system("pause");
+	//cout << endl << "SampleRate: " << sampleRate << endl << "channels: " << channels << endl;
+	//system("pause");
     if (params->speech)
     {
         // use settings for speech processing
@@ -198,7 +198,7 @@ static void process(SoundTouch *pSoundTouch, WavInFile *inFile, WavOutFile *outF
         // Read a chunk of samples from the input file
         num = inFile->read(sampleBuffer, BUFF_SIZE);
         nSamples = num / (int)inFile->getNumChannels();
-		cout << endl << "nSamples " << nSamples << endl << "buffSizeSamples: " << buffSizeSamples << endl;
+		//cout << endl << "nSamples " << nSamples << endl << "buffSizeSamples: " << buffSizeSamples << endl;
 		//fprintf(stderr, "nSamples: %d, buffSizeSamples: %d", nSamples, buffSizeSamples);
         // Feed the samples into SoundTouch processor
         pSoundTouch->putSamples(sampleBuffer, nSamples);

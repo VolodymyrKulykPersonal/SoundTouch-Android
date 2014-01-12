@@ -372,7 +372,7 @@ int WavInFile::read(float *buffer, int maxElems)
     assert(buffer);
 
     bytesPerSample = header.format.bits_per_sample / 8;
-	cout << "bytesPerSample: " << bytesPerSample << endl;
+	//cout << "bytesPerSample: " << bytesPerSample << endl;
     if ((bytesPerSample < 1) || (bytesPerSample > 4))
     {
         stringstream ss;
@@ -383,8 +383,8 @@ int WavInFile::read(float *buffer, int maxElems)
     }
 
     numBytes = maxElems * bytesPerSample;
-	cout << "numEBytes: " << numBytes << endl;
-	system("pause");
+	//cout << "numEBytes: " << numBytes << endl;
+	//system("pause");
     afterDataRead = dataRead + numBytes;
     if (afterDataRead > header.data.data_len) 
     {
@@ -399,8 +399,8 @@ int WavInFile::read(float *buffer, int maxElems)
     dataRead += numBytes;
 
     numElems = numBytes / bytesPerSample;
-	cout << "numElems: " << numElems << endl;
-	system("pause");
+	//cout << "numElems: " << numElems << endl;
+	//system("pause");
     // swap byte ordert & convert to float, depending on sample format
     switch (bytesPerSample)
     {
@@ -895,7 +895,7 @@ void WavOutFile::write(const float *buffer, int numElems)
     bytesPerSample = header.format.bits_per_sample / 8;
     numBytes = numElems * bytesPerSample;
     short *temp = (short*)getConvBuffer(numBytes);
-	cout << "IN WRITE: BYTESPERSAMPLE: " << bytesPerSample << endl;
+	//cout << "IN WRITE: BYTESPERSAMPLE: " << bytesPerSample << endl;
     switch (bytesPerSample)
     {
         case 1:
