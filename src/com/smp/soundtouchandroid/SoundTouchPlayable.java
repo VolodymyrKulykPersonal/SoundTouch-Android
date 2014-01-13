@@ -12,6 +12,7 @@ import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.os.Build;
+import android.util.Log;
 
 public class SoundTouchPlayable implements Runnable
 {
@@ -29,8 +30,8 @@ public class SoundTouchPlayable implements Runnable
 			throws IOException
 	{
 		this.id = id;
-		
-		if(Build.VERSION.SDK_INT >= 16)
+
+		if (Build.VERSION.SDK_INT >= 16)
 		{
 			this.file = new MediaCodecMp3Decoder(file);
 		}
@@ -38,7 +39,7 @@ public class SoundTouchPlayable implements Runnable
 		{
 			this.file = new JLayerMp3Decoder(file);
 		}
-		
+
 		pauseLock = new Object();
 		paused = true;
 		finished = false;
@@ -62,6 +63,7 @@ public class SoundTouchPlayable implements Runnable
 
 		try
 		{
+			Log.d("MP3", "TRY");
 			playAudio();
 		}
 		catch (com.smp.soundtouchandroid.DecoderException e)
@@ -70,8 +72,10 @@ public class SoundTouchPlayable implements Runnable
 		}
 		finally
 		{
+			Log.d("MP3", "FINALLY");
 			soundTouch.clearBuffer(id);
-			track.pause();
+			track.stop();
+			track.flush();
 			track.release();
 			file.close();
 		}
@@ -98,8 +102,16 @@ public class SoundTouchPlayable implements Runnable
 
 	public void stop()
 	{
+		if (paused)
+		{
+			synchronized (pauseLock)
+			{
+				paused = false;
+				pauseLock.notifyAll();
+			}
+		}
 		finished = true;
-		paused = false;
+
 	}
 
 	private void playAudio() throws com.smp.soundtouchandroid.DecoderException
