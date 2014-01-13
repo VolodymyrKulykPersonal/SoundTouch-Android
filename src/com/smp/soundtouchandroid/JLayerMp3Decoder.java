@@ -16,9 +16,9 @@ import javazoom.jl.decoder.Decoder;
 import javazoom.jl.decoder.Header;
 import javazoom.jl.decoder.SampleBuffer;
 
-public class Mp3File
+public class JLayerMp3Decoder implements Mp3Decoder
 {
-	public Mp3File(String path) throws FileNotFoundException
+	public JLayerMp3Decoder(String path) throws FileNotFoundException
 	{
 		file = new File(path);
 		inputStream = new BufferedInputStream(new FileInputStream(file), 8 * 1024);
@@ -27,7 +27,7 @@ public class Mp3File
 		outStream = new ByteArrayOutputStream(MAX_CHUNK_SIZE);
 	}
 
-	public Mp3File(String path, long position)
+	public JLayerMp3Decoder(String path, long position)
 	{
 		// TODO
 	}
@@ -39,8 +39,6 @@ public class Mp3File
 	private Bitstream bitstream;
 	private Decoder decoder;
 	ByteArrayOutputStream outStream;
-
-	private static int MAX_CHUNK_SIZE = 8192;
 
 	public void close()
 	{
@@ -55,34 +53,52 @@ public class Mp3File
 		}
 	}
 
-	public byte[] decodeChunk() throws BitstreamException, javazoom.jl.decoder.DecoderException, IOException
+	public byte[] decodeChunk() throws DecoderException
 	{
 		outStream.reset();
 		boolean done = false;
-		while (!done)
+		try
 		{
-			Header frameHeader = bitstream.readFrame();
-			if (frameHeader == null)
+			while (!done)
 			{
-				done = true;
-			}
-			else
-			{
-				SampleBuffer output = (SampleBuffer) decoder.decodeFrame(frameHeader, bitstream);
-				short[] pcm = output.getBuffer();
-				for (short s : pcm)
-				{
-					outStream.write(s & 0xff);
-					outStream.write((s >> 8) & 0xff);
-				}
-				if (outStream.size() > MAX_CHUNK_SIZE)
+				Header frameHeader = bitstream.readFrame();
+				if (frameHeader == null)
 				{
 					done = true;
 				}
+				else
+				{
+					SampleBuffer output = (SampleBuffer) decoder.decodeFrame(frameHeader, bitstream);
+					short[] pcm = output.getBuffer();
+					for (short s : pcm)
+					{
+						outStream.write(s & 0xff);
+						outStream.write((s >> 8) & 0xff);
+					}
+					if (outStream.size() > MAX_CHUNK_SIZE)
+					{
+						done = true;
+					}
+				}
+				bitstream.closeFrame();
 			}
-			bitstream.closeFrame();
+			outStream.flush();
 		}
-		outStream.flush();
+		catch (BitstreamException e)
+		{
+			e.printStackTrace();
+			throw new DecoderException("Error decoding mp3 file");
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+			throw new DecoderException("Error decoding mp3 file");
+		}
+		catch (javazoom.jl.decoder.DecoderException e)
+		{
+			e.printStackTrace();
+			throw new DecoderException("Error decoding mp3 file");
+		}
 		return outStream.toByteArray();
 	}
 

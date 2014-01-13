@@ -11,13 +11,14 @@ import javazoom.jl.decoder.DecoderException;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
+import android.os.Build;
 
 public class SoundTouchPlayable implements Runnable
 {
 	private Object pauseLock;
 	private SoundTouch soundTouch;
 	private AudioTrack track;
-	private Mp3File file;
+	private Mp3Decoder file;
 
 	private boolean paused, finished;
 	private int id;
@@ -25,11 +26,19 @@ public class SoundTouchPlayable implements Runnable
 	public SoundTouchPlayable(String file, int id, int channels, int samplingRate,
 			int bytesPerSample, float tempo, int pitchSemi)
 
-			throws FileNotFoundException
+			throws IOException
 	{
 		this.id = id;
-		this.file = new Mp3File(file);
-
+		
+		if(Build.VERSION.SDK_INT >= 16)
+		{
+			this.file = new MediaCodecMp3Decoder(file);
+		}
+		else
+		{
+			this.file = new JLayerMp3Decoder(file);
+		}
+		
 		pauseLock = new Object();
 		paused = true;
 		finished = false;
@@ -51,12 +60,21 @@ public class SoundTouchPlayable implements Runnable
 	{
 		track.play();
 
-		playAudio();
-
-		soundTouch.clearBuffer(id);
-		track.pause();
-		track.release();
-		file.close();
+		try
+		{
+			playAudio();
+		}
+		catch (com.smp.soundtouchandroid.DecoderException e)
+		{
+			e.printStackTrace();
+		}
+		finally
+		{
+			soundTouch.clearBuffer(id);
+			track.pause();
+			track.release();
+			file.close();
+		}
 	}
 
 	public void play()
@@ -83,50 +101,31 @@ public class SoundTouchPlayable implements Runnable
 		finished = true;
 	}
 
-	private void playAudio()
+	private void playAudio() throws com.smp.soundtouchandroid.DecoderException
 	{
-		try
-		{
-			byte[] input = null;
-			int bytesReceived = 0;
+		byte[] input = null;
+		int bytesReceived = 0;
 
-			do
-			{
-				if (finished)
-					break;
-				input = processChunk();
-			}
-			while (input.length > 0);
-
-			soundTouch.finish();
-
-			do
-			{
-				if (finished)
-					break;
-				bytesReceived = processChunkForInt();
-			}
-			while (bytesReceived > 0);
-
-		}
-		catch (BitstreamException e)
+		do
 		{
-			finished = true;
-			e.printStackTrace();
+			if (finished)
+				break;
+			input = processChunk();
 		}
-		catch (DecoderException e)
+		while (input.length > 0);
+
+		soundTouch.finish();
+
+		do
 		{
-			finished = true;
-			e.printStackTrace();
+			if (finished)
+				break;
+			bytesReceived = processChunkForInt();
 		}
-		catch (IOException e)
-		{
-			finished = true;
-			e.printStackTrace();
-		}
+		while (bytesReceived > 0);
 	}
 
-	private byte[] processChunk() throws BitstreamException, DecoderException, IOException
+	private byte[] processChunk() throws com.smp.soundtouchandroid.DecoderException
 	{
 		byte[] input;
 		int bytesReceived = 0;
@@ -154,7 +153,7 @@ public class SoundTouchPlayable implements Runnable
 	}
 
 	// TODO code duplication...refactor?
-	private int processChunkForInt() throws BitstreamException, DecoderException, IOException
+	private int processChunkForInt() throws com.smp.soundtouchandroid.DecoderException
 	{
 		byte[] input;
 		int bytesReceived = 0;
