@@ -50,7 +50,7 @@ public class MediaCodecMp3Decoder implements Mp3Decoder
 
 		boolean sawOutputEOS = false;
 		
-		final int res = codec.dequeueOutputBuffer(info, -1);
+		final int res = codec.dequeueOutputBuffer(info, TIMEOUT_US);
 		if (res >= 0)
 		{
 			int outputBufIndex = res;
@@ -84,9 +84,11 @@ public class MediaCodecMp3Decoder implements Mp3Decoder
 	@Override
 	public void close()
 	{
+		codec.flush();
 		codec.stop();
 		codec.release();
 		extractor.release();
+		
 	}
 
 	public void advanceInput()

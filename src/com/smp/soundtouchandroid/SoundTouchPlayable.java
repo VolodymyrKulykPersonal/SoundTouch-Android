@@ -20,7 +20,7 @@ public class SoundTouchPlayable implements Runnable
 	private AudioTrack track;
 	private Mp3Decoder file;
 
-	private boolean paused, finished;
+	private volatile boolean paused, finished;
 	private int id;
 
 	public SoundTouchPlayable(String file, int id, int channels, int samplingRate,
@@ -99,6 +99,7 @@ public class SoundTouchPlayable implements Runnable
 	public void stop()
 	{
 		finished = true;
+		paused = false;
 	}
 
 	private void playAudio() throws com.smp.soundtouchandroid.DecoderException
