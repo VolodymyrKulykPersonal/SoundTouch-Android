@@ -1,18 +1,12 @@
 package com.smp.soundtouchandroid;
 
-import static com.smp.soundtouchandroid.Constants.BUFFER_SIZE_TRACK;
+import static com.smp.soundtouchandroid.Constants.*;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-
-import javazoom.jl.decoder.BitstreamException;
-import javazoom.jl.decoder.DecoderException;
-
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.os.Build;
-import android.util.Log;
 
 public class SoundTouchPlayable implements Runnable
 {
@@ -29,8 +23,6 @@ public class SoundTouchPlayable implements Runnable
 
 			throws IOException
 	{
-		this.id = id;
-
 		if (Build.VERSION.SDK_INT >= 16)
 		{
 			this.file = new MediaCodecMp3Decoder(file);
@@ -39,6 +31,13 @@ public class SoundTouchPlayable implements Runnable
 		{
 			this.file = new JLayerMp3Decoder(file);
 		}
+		setup(id, channels, samplingRate, bytesPerSample, tempo, pitchSemi);
+	}
+
+	private void setup(int id, int channels, int samplingRate,
+			int bytesPerSample, float tempo, int pitchSemi)
+	{
+		this.id = id;
 
 		pauseLock = new Object();
 		paused = true;
@@ -53,18 +52,18 @@ public class SoundTouchPlayable implements Runnable
 		soundTouch = new SoundTouch(id, channels, samplingRate, bytesPerSample, tempo, pitchSemi);
 		track = new AudioTrack(AudioManager.STREAM_MUSIC, samplingRate, channelFormat,
 				AudioFormat.ENCODING_PCM_16BIT, BUFFER_SIZE_TRACK, AudioTrack.MODE_STREAM);
-
 	}
 
 	@Override
 	public void run()
 	{
-		track.play();
+		Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+
+		//track.play();
 
 		try
 		{
-			Log.d("MP3", "TRY");
-			playAudio();
+			playFile();
 		}
 		catch (com.smp.soundtouchandroid.DecoderException e)
 		{
@@ -72,7 +71,6 @@ public class SoundTouchPlayable implements Runnable
 		}
 		finally
 		{
-			Log.d("MP3", "FINALLY");
 			soundTouch.clearBuffer(id);
 			track.stop();
 			track.flush();
@@ -114,7 +112,7 @@ public class SoundTouchPlayable implements Runnable
 
 	}
 
-	private void playAudio() throws com.smp.soundtouchandroid.DecoderException
+	private void playFile() throws com.smp.soundtouchandroid.DecoderException
 	{
 		byte[] input = null;
 		int bytesReceived = 0;
@@ -140,8 +138,17 @@ public class SoundTouchPlayable implements Runnable
 
 	private byte[] processChunk() throws com.smp.soundtouchandroid.DecoderException
 	{
+		
 		byte[] input;
 		int bytesReceived = 0;
+
+		input = file.decodeChunk();
+		soundTouch.putBytes(input);
+
+		bytesReceived = soundTouch.getBytes(input);
+
+		track.write(input, 0, bytesReceived);
+
 		synchronized (pauseLock)
 		{
 			while (paused)
@@ -155,12 +162,6 @@ public class SoundTouchPlayable implements Runnable
 				}
 			}
 		}
-		input = file.decodeChunk();
-		soundTouch.putBytes(input);
-
-		bytesReceived = soundTouch.getBytes(input);
-
-		track.write(input, 0, bytesReceived);
 
 		return input;
 	}
@@ -170,6 +171,14 @@ public class SoundTouchPlayable implements Runnable
 	{
 		byte[] input;
 		int bytesReceived = 0;
+
+		input = file.decodeChunk();
+		soundTouch.putBytes(input);
+
+		bytesReceived = soundTouch.getBytes(input);
+
+		track.write(input, 0, bytesReceived);
+
 		synchronized (pauseLock)
 		{
 			while (paused)
@@ -183,12 +192,6 @@ public class SoundTouchPlayable implements Runnable
 				}
 			}
 		}
-		input = file.decodeChunk();
-		soundTouch.putBytes(input);
-
-		bytesReceived = soundTouch.getBytes(input);
-
-		track.write(input, 0, bytesReceived);
 
 		return bytesReceived;
 	}

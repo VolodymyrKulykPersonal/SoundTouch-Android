@@ -1,4 +1,3 @@
-
 #include <jni.h>
 #include <android/log.h>
 #include <queue>
@@ -35,7 +34,18 @@ struct SoundTouchExt
 	SoundTouchExt()
 	{
 		sTouch = new SoundTouch();
-		fBufferOut  = new queue<signed char>();
+		fBufferOut = new queue<signed char>();
+	}
+
+	SoundTouchExt(const SoundTouchExt& other)
+	{
+		sTouch = new SoundTouch();
+		fBufferOut = new queue<signed char>();
+		this->channels = other.channels;
+		this->sampleRate = other.sampleRate;
+		this->tempoChange = other.tempoChange;
+		this->pitchSemi = other.pitchSemi;
+		this->bytesPerSample = other.bytesPerSample;
 	}
 };
 
@@ -65,11 +75,11 @@ extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_clearBytes(
 	queue<signed char>* fBufferOut = sProcessors.at(track).fBufferOut;
 
 	SAMPLETYPE* fBufferIn = new SAMPLETYPE[BUFF_SIZE];
-	process(soundTouch, fBufferIn, fBufferOut, BUFF_SIZE, true); //audio is finishing
+	soundTouch.sTouch->clear();
 
 	delete[] fBufferIn;
 	fBufferIn = NULL;
-	
+
 	while (!fBufferOut->empty())
 	{
 		fBufferOut->pop();
@@ -84,57 +94,51 @@ extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_setup(JNIEn
 }
 
 extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_finish(JNIEnv *env,
-																		jobject thiz, jint track, 
-																		int length)
+	jobject thiz, jint track,
+	int length)
 {
 	SoundTouchExt& soundTouch = sProcessors.at(track);
 
-	
 	const int bytesPerSample = soundTouch.bytesPerSample;
 	const int BUFF_SIZE = length / bytesPerSample;
-	
+
 	queue<signed char>* fBufferOut = sProcessors.at(track).fBufferOut;
-	
 
 	SAMPLETYPE* fBufferIn = new SAMPLETYPE[BUFF_SIZE];
 	process(soundTouch, fBufferIn, fBufferOut, BUFF_SIZE, true); //audio is finishing
-	
+
 	delete[] fBufferIn;
 	fBufferIn = NULL;
 }
 extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_putBytes(JNIEnv *env,
-																			jobject thiz, 
-																			jint track, 
-																			jbyteArray input,
-																			jint length)
+	jobject thiz,
+	jint track,
+	jbyteArray input,
+	jint length)
 {
-	//LOGV("before soundtouch");
+
 	SoundTouchExt& soundTouch = sProcessors.at(track);
-	//LOGV("after soundtouch");
-	//LOGV("IN PROCESS: SoundTouch channels: %d, sampling rate: %d, bytesper: %d, tempo: %f, pitch: %d", soundTouch.channels, soundTouch.sampleRate, soundTouch.bytesPerSample, soundTouch.tempoChange, soundTouch.pitchSemi);
+	
 	const int bytesPerSample = soundTouch.bytesPerSample;
 	const int BUFF_SIZE = length / bytesPerSample;
-	
+
 	queue<signed char>* fBufferOut = sProcessors.at(track).fBufferOut;
-	
+
 	jboolean isCopy;
 	jbyte* ar = env->GetByteArrayElements(input, &isCopy);
-	//LOGV("length: %d", length);
+
 
 	SAMPLETYPE* fBufferIn = new SAMPLETYPE[BUFF_SIZE];
-	
-	//converts the chars to floats (16-bit only).
-	convertInput16(ar, fBufferIn, BUFF_SIZE); 
-	//LOGV("after convert input");
 
-	//transform floats from fBufferIn to fBufferout
+	//converts the chars to floats (16-bit only).
+	convertInput16(ar, fBufferIn, BUFF_SIZE);
+
 	process(soundTouch, fBufferIn, fBufferOut, BUFF_SIZE, false); //audio is ongoing.
 
-	//LOGV("fBufferOut Size: %d", fBufferOut->size());
 	env->ReleaseByteArrayElements(input, ar, JNI_ABORT);
-	//LOGV("after release putBytes");
+	
 	delete[] fBufferIn;
-	fBufferIn = NULL;	
+	fBufferIn = NULL;
 }
 
 extern "C" DLL_PUBLIC jint Java_com_smp_soundtouchandroid_SoundTouch_getBytes(JNIEnv *env,
@@ -143,17 +147,16 @@ extern "C" DLL_PUBLIC jint Java_com_smp_soundtouchandroid_SoundTouch_getBytes(JN
 	queue<signed char>* fBufferOut = sProcessors.at(track).fBufferOut;
 
 	jbyte* res = new jbyte[toGet];
-	//LOGV("BEFORE PUTQUEUE, %d", fBufferOut->size());
+	
 	jint bytesWritten = putQueueInChar(res, fBufferOut, toGet);
-	//LOGV("AFTER PUTQUEUE: %d", fBufferOut->size());
-	//need checking
+	
 	jboolean isCopy;
-	jbyte* ar = (jbyte*) env->GetPrimitiveArrayCritical(get, &isCopy);
-	
+	jbyte* ar = (jbyte*)env->GetPrimitiveArrayCritical(get, &isCopy);
+
 	memcpy(ar, res, toGet);
-	
+
 	env->ReleasePrimitiveArrayCritical(get, ar, JNI_ABORT);
-	//LOGV("AFTER BYTE %d", fBufferOut->size());
+
 	delete[] res;
 	res = NULL;
 
@@ -163,7 +166,7 @@ extern "C" DLL_PUBLIC jint Java_com_smp_soundtouchandroid_SoundTouch_getBytes(JN
 static int putQueueInChar(jbyte* res, queue<signed char>* fBufferOut, int toPut)
 {
 	int count = 0;
-	for(int i = 0; i < toPut; i++)
+	for (int i = 0; i < toPut; i++)
 	{
 		if (fBufferOut->size() > 0)
 		{
@@ -173,25 +176,24 @@ static int putQueueInChar(jbyte* res, queue<signed char>* fBufferOut, int toPut)
 		}
 		else
 		{
-			////LOGV("fBufferOut.size() is 0");
 			break;
 		}
 	}
 	return count;
 }
 
-static int process(SoundTouchExt& soundTouch, SAMPLETYPE* fBufferIn, queue<signed char>* fBufferOut, 
-																		const int BUFF_SIZE, 
-																		bool finishing)
+static int process(SoundTouchExt& soundTouch, SAMPLETYPE* fBufferIn, queue<signed char>* fBufferOut,
+	const int BUFF_SIZE,
+	bool finishing)
 {
 	const int channels = soundTouch.channels;
 	const int buffSizeSamples = BUFF_SIZE / channels;
 	const int bytesPerSample = soundTouch.bytesPerSample;
-	
-	SoundTouch* &sTouch = soundTouch.sTouch;
-	
+
+	SoundTouch* sTouch = soundTouch.sTouch;
+
 	int nSamples = BUFF_SIZE / channels;
-	//LOGV("After soundTouch, nSamples: %d", nSamples);
+	
 	int processed = 0;
 
 	if (finishing)
@@ -200,27 +202,22 @@ static int process(SoundTouchExt& soundTouch, SAMPLETYPE* fBufferIn, queue<signe
 	}
 	else
 	{
-		//LOGV("before put samples");
 		sTouch->putSamples(fBufferIn, nSamples);
 	}
-	
-	//LOGV("After put samples");
+
 	do
 	{
 		nSamples = sTouch->receiveSamples(fBufferIn, buffSizeSamples);
-		//LOGV("after receive samples: %d", nSamples);
-		processed += write(fBufferIn, fBufferOut, nSamples * channels, bytesPerSample); 
-		//LOGV("NUMBER OF SAMPLES: %d", nSamples);
+		processed += write(fBufferIn, fBufferOut, nSamples * channels, bytesPerSample);
 	} while (nSamples != 0);
 
-	
 	return processed;
 }
 
 static void* getConvBuffer(int sizeBytes)
 {
-	int convBuffSize = (sizeBytes + 15) & -8; 
-	////LOGV("conv buffer size: %d", convBuffSize);// round up to following 8-byte bounday
+	int convBuffSize = (sizeBytes + 15) & -8;
+	// round up to following 8-byte bounday
 	char *convBuff = new char[convBuffSize];
 	return convBuff;
 }
@@ -228,9 +225,9 @@ static void* getConvBuffer(int sizeBytes)
 static int write(const float *bufferIn, queue<signed char>* bufferOut, int numElems, int bytesPerSample)
 {
 	int numBytes;
-	
+
 	int oldSize = bufferOut->size();
-	
+
 	if (numElems == 0) return 0;
 
 	numBytes = numElems * bytesPerSample;
@@ -238,72 +235,34 @@ static int write(const float *bufferIn, queue<signed char>* bufferOut, int numEl
 
 	switch (bytesPerSample)
 	{
-		/*
-	case 1:
-	{
-	unsigned char *temp2 = (unsigned char *)temp;
-	for (int i = 0; i < numElems; i++)
-	{
-	temp2[i] = (unsigned char)saturate(bufferIn[i] * 128.0f + 128.0f, 0.0f, 255.0f);
-	}
-	break;
-	}
-	*/
+		
 	case 2: //16 bit encoding
 	{
-			  short *temp2 = (short *)temp;
-			  for (int i = 0; i < numElems; i++)
-			  {
-				  short value = (short)saturate(bufferIn[i] * 32768.0f, -32768.0f, 32767.0f); //magic to me
-				  temp2[i] = value; //works for little endian only.
-			  }
-			  break;
+				short *temp2 = (short *)temp;
+				for (int i = 0; i < numElems; i++)
+				{
+					short value = (short)saturate(bufferIn[i] * 32768.0f, -32768.0f, 32767.0f); //magic to me
+					temp2[i] = value; //works for little endian only.
+				}
+				break;
 	}
-		/*
-	case 3:
-	{
-	char *temp2 = (char *)temp;
-	for (int i = 0; i < numElems; i++)
-	{
-	int value = saturate(bufferIn[i] * 8388608.0f, -8388608.0f, 8388607.0f);
-	*((int*)temp2) = _swap32(value);
-	temp2 += 3;
-	}
-	break;
-	}
-
-	case 4:
-	{
-	int *temp2 = (int *)temp;
-	for (int i = 0; i < numElems; i++)
-	{
-	int value = saturate(bufferIn[i] * 2147483648.0f, -2147483648.0f, 2147483647.0f);
-	temp2[i] = _swap32(value);
-	}
-	break;
-	}
-	*/
+		
 	default:
-		assert(false);
+		break;
 	}
-	////LOGV("After switch");
-	////LOGV("NUMBER OF BYTES: %d", numBytes);
-	////LOGV("number of elems: %d", numElems);
 	for (int i = 0; i < numBytes / 2; ++i)
 	{
 		bufferOut->push(temp[i] & 0xff);
 		bufferOut->push((temp[i] >> 8) & 0xff);
-		////LOGV("i %d", numElems);
 	}
-	////LOGV("After write");
 	delete[] temp;
+	temp = NULL;
 	return bufferOut->size() - oldSize;
-	//bytesWritten += numBytes;
 }
 
 static void setup(SoundTouchExt& soundTouch, int channels, int sampleRate, int bytesPerSample, float tempoChange, float pitchSemi)
 {
-	SoundTouch* &sTouch = soundTouch.sTouch;
+	SoundTouch* sTouch = soundTouch.sTouch;
 
 	soundTouch.channels = channels;
 	soundTouch.sampleRate = sampleRate;
