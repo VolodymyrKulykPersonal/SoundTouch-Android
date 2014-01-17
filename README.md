@@ -39,7 +39,7 @@ SoundTouch soundTouch = new SoundTouch(0, 2, 44100, 2, 1.0f, 2);
 //put a byte[] of PCM audio in the sound processor:
 soundTouch.putBytes(input);
 
-//get a byte[] of processed audio and write to output:
+//write output to a byte[]:
 int bytesReceived = soundTouch.getBytes(output);
 
 //after you write the last byte[], call finish().
