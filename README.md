@@ -26,39 +26,40 @@ Currently only supports Androids with an FPU and 16 bit audio samples.
 
 Example usage:
 
-<pre style='color:#000000;background:#ffffff;'><html><body style='color:#000000; background:#ffffff; '><pre>
-There are currently 16 track id's you can use (0-15), each one has a separate SoundTouch processor.
+<pre>
+//There are currently 16 track id's you can use (0-15), each one has a separate SoundTouch processor.
 
-<span style='color:#696969; '>//Set your audio processing requirements: track id, channels, samplingRate, bytesPerSample, </span>
-											tempoChange (1.0 is normal speed), pitchChange (in semi-tones)
+//Set your audio processing requirements: track id, channels, samplingRate, bytesPerSample, 
+                                            tempoChange (1.0 is normal speed), pitchChange (in semi-tones)
 
-SoundTouch soundTouch = new SoundTouch(0, 2, 44100, 2, 1.0f, 2)<span style='color:#808030; '>;</span>
+SoundTouch soundTouch = new SoundTouch(0, 2, 44100, 2, 1.0f, 2);
 
-<span style='color:#696969; '>//byte[] sizes are recommended to be 8192 bytes.</span>
+//byte[] sizes are recommended to be 8192 bytes.
 
-<span style='color:#696969; '>//put a byte[] of PCM audio in the sound processor:</span>
-soundTouch.putBytes(input)<span style='color:#808030; '>;</span>
+//put a byte[] of PCM audio in the sound processor:
+soundTouch.putBytes(input);
 
-<span style='color:#696969; '>//get a byte[] of processed audio and write to output:</span>
-soundTouch.getBytes(output)<span style='color:#808030; '>;</span>
+//get a byte[] of processed audio and write to output:
+soundTouch.getBytes(output);
 
-<span style='color:#696969; '>//after you write the last byte[], call finish().</span>
+//after you write the last byte[], call finish().
 
-soundTouch.finish()<span style='color:#808030; '>;</span>
+soundTouch.finish();
 
-<span style='color:#696969; '>//now get the remaining bytes from the sound processor.</span>
-int bytesReceived = 0<span style='color:#808030; '>;</span>
+//now get the remaining bytes from the sound processor.
+int bytesReceived = 0;
 do
-<span style='color:#800080; '>{</span>
-    bytesReceived <span style='color:#808030; '>=</span> soundTouch<span style='color:#808030; '>.</span>getBytes<span style='color:#808030; '>(</span>output<span style='color:#808030; '>)</span><span style='color:#800080; '>;</span>
-    <span style='color:#696969; '>//do stuff with output.</span>
-<span style='color:#800080; '>}</span> while (bytesReceived != 0)
+{
+    bytesReceived = soundTouch.getBytes(output);
+    //do stuff with output.
+} while (bytesReceived != 0)
 
-<span style='color:#696969; '>//if you stop playing, call clear on the track id to clear the pipeline for later use.</span>
+//if you stop playing, call clear on the track id to clear the pipeline for later use.
 
 soundTouch.clearBuffer(id)
+</pre>
 
 Take a look at the (incomplete) SoundTouchPlayable to see how to use SoundTouch-Android library
 to stream to an AudioTrack.
-</pre>
+
 
