@@ -26,11 +26,11 @@ Currently only supports Androids with an FPU and 16 bit audio samples.
 
 Example usage:
 
-<pre>
+```java
 //There are currently 16 track id's you can use (0-15), each one has a separate SoundTouch processor.
 
 //Set your audio processing requirements: track id, channels, samplingRate, bytesPerSample, 
-                                            tempoChange (1.0 is normal speed), pitchChange (in semi-tones)
+//                                      tempoChange (1.0 is normal speed), pitchChange (in semi-tones)
 
 SoundTouch soundTouch = new SoundTouch(0, 2, 44100, 2, 1.0f, 2);
 
@@ -40,7 +40,7 @@ SoundTouch soundTouch = new SoundTouch(0, 2, 44100, 2, 1.0f, 2);
 soundTouch.putBytes(input);
 
 //get a byte[] of processed audio and write to output:
-soundTouch.getBytes(output);
+int bytesReceived = soundTouch.getBytes(output);
 
 //after you write the last byte[], call finish().
 
@@ -57,7 +57,7 @@ do
 //if you stop playing, call clear on the track id to clear the pipeline for later use.
 
 soundTouch.clearBuffer(id)
-</pre>
+```
 
 Take a look at the (incomplete) SoundTouchPlayable to see how to use SoundTouch-Android library
 to stream to an AudioTrack.
