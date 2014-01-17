@@ -43,7 +43,6 @@ soundTouch.putBytes(input);
 int bytesReceived = soundTouch.getBytes(output);
 
 //after you write the last byte[], call finish().
-
 soundTouch.finish();
 
 //now get the remaining bytes from the sound processor.
